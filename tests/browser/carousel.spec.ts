@@ -137,18 +137,19 @@ test('demo fits desktop, tablet, phone and landscape without overflow', async ({
   }
 });
 
-test('a real native touch swipe scrolls the carousel', async ({ browser, browserName }) => {
+test('a real native touch swipe scrolls the carousel', async ({ browser, browserName, baseURL }) => {
   test.skip(
     browserName !== 'chromium',
     'CDP touch dispatch is Chromium-specific; mobile WebKit is covered by the remaining interaction tests.',
   );
   const context = await browser.newContext({
+    baseURL,
     hasTouch: true,
     isMobile: true,
     viewport: { width: 390, height: 844 },
   });
   const page = await context.newPage();
-  await page.goto('http://127.0.0.1:4173/tests/fixture.html');
+  await page.goto('/tests/fixture.html');
   const box = await page.getByRole('region', { name: 'Fixture carousel' }).boundingBox();
   if (!box) throw new Error('Missing carousel');
   const session = await context.newCDPSession(page);
@@ -166,4 +167,38 @@ test('a real native touch swipe scrolls the carousel', async ({ browser, browser
   await expect.poll(() => position(page)).toBeGreaterThan(100);
   expect(await page.evaluate(() => window.scrollX)).toBe(0);
   await context.close();
+});
+
+test('autoplay starts when new slides make an initially fitting carousel overflow', async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto('/tests/fixture.html?auto=true');
+  if (!isMobile) await page.mouse.move(1, 1);
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Remove slide' }).click();
+  await expect(page.locator('[data-slide]')).toHaveCount(1);
+  await page.waitForTimeout(1300);
+  expect(await position(page)).toBe(0);
+  await page.getByRole('button', { name: 'Remove slide' }).click();
+  await expect(page.locator('[data-slide]')).toHaveCount(4);
+  await expect.poll(() => position(page), { timeout: 4000 }).toBeGreaterThan(100);
+});
+
+test('a style change that creates overflow starts autoplay without remounting slides', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'Two fixture slides only fit together at desktop width.');
+  await page.goto('/tests/fixture.html?auto=true');
+  await page.mouse.move(1, 1);
+  for (let i = 0; i < 2; i++) await page.getByRole('button', { name: 'Remove slide' }).click();
+  await page.getByLabel('Note 0').fill('Keep this');
+  await page.getByRole('button', { name: 'Outside', exact: true }).focus();
+  await page.waitForTimeout(1200);
+  expect(await position(page)).toBe(0);
+  await page.getByRole('region', { name: 'Fixture carousel' }).evaluate((el) => {
+    el.style.gap = '180px';
+  });
+  await expect.poll(() => position(page), { timeout: 4000 }).toBeGreaterThan(10);
+  await expect(page.getByLabel('Note 0')).toHaveValue('Keep this');
 });

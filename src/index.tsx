@@ -137,23 +137,32 @@ export const Rerousel = forwardRef<RerouselHandle, RerouselProps>(function Rerou
     el.addEventListener('focusin', sync);
     el.addEventListener('focusout', blur);
     document.addEventListener('visibilitychange', sync);
+    window.addEventListener('resize', sync);
     motion.addEventListener('change', sync);
     const observer = new ResizeObserver(sync);
-    observer.observe(el);
-    for (const child of el.children) observer.observe(child);
-    sync();
+    const observe = () => {
+      observer.disconnect();
+      observer.observe(el, { box: 'border-box' });
+      for (const child of el.children) observer.observe(child, { box: 'border-box' });
+      sync();
+    };
+    const mutations = new MutationObserver(observe);
+    mutations.observe(el, { childList: true, attributes: true, attributeFilter: ['class', 'style'] });
+    observe();
     return () => {
       active = false;
       clearInterval(timer);
       observer.disconnect();
+      mutations.disconnect();
       el.removeEventListener('pointerenter', enter);
       el.removeEventListener('pointerleave', leave);
       el.removeEventListener('focusin', sync);
       el.removeEventListener('focusout', blur);
       document.removeEventListener('visibilitychange', sync);
+      window.removeEventListener('resize', sync);
       motion.removeEventListener('change', sync);
     };
-  }, [children, interval, stop, pauseOnHover, move]);
+  }, [interval, stop, pauseOnHover, move]);
 
   return (
     <>

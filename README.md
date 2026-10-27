@@ -1,6 +1,6 @@
 # Rerousel
 
-A tiny, unstyled carousel for React. **1.44 kB gzipped**, zero runtime dependencies, and fully interactive slides.
+A tiny, unstyled carousel for React. **1.52 kB gzipped**, zero runtime dependencies, and fully interactive slides.
 
 [Live playground & docs](https://rerousel.netlify.app/) · [npm](https://www.npmjs.com/package/rerousel) · [Issues](https://github.com/aexol-studio/rerousel-react-carousel/issues)
 

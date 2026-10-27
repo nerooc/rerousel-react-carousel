@@ -40,6 +40,17 @@ describe('native carousel', () => {
     tick();
     expect(el.scrollLeft).toBe(400);
   });
+  it('does not restart autoplay when a parent recreates equivalent JSX children', () => {
+    const content = () => ['A', 'B', 'C'].map((text) => <div key={text}>{text}</div>);
+    const el = render(<Rerousel>{content()}</Rerousel>);
+    dimensions(el);
+    tick(1000);
+    render(<Rerousel>{content()}</Rerousel>);
+    tick(1000);
+    render(<Rerousel>{content()}</Rerousel>);
+    tick(1000);
+    expect(el.scrollLeft).toBe(200);
+  });
   it('supports explicit advance distance and finite mode', () => {
     const el = render(
       <Rerousel itemWidth={100} loop={false}>

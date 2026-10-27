@@ -13,7 +13,7 @@ jobs:
     uses: ./.github/workflows/ci.yml
   publish:
     needs: verify
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: npm
     permissions:
       contents: read

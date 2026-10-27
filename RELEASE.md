@@ -12,15 +12,15 @@ React 18.3.1 and current React 19; current evergreen browsers; zero runtime depe
 
 ## Local verification
 
-- `npm run check`: formatting, strict TypeScript, 23 unit tests, library build, production demo build, gzip budget.
+- `npm run check`: formatting, strict TypeScript, 24 unit tests, library build, production demo build, gzip budget.
 - `npm run test:compat`: full unit suite with React 18.3.1 and 19.3.1 in isolated installs; public declarations compile against both type generations.
 - `npm run test:package`: exact npm tarball file allowlist, no runtime dependencies, ESM/CJS client directives and imports, real Node server rendering without browser globals.
-- `npm run test:browser`: 28 passing core/demo checks across Chromium, Firefox, desktop WebKit and iPhone WebKit, plus a passing Chromium native-touch check; loops and retained interactive state; focus/autoplay; RTL input editing; reduced motion; finite mode; resizing and changing children; clipboard in Chromium; automated WCAG 2 A/AA, 2.1 AA and 2.2 AA rules with axe; desktop/tablet/phone/landscape overflow checks. A CDP native touch swipe is tested in Chromium only.
+- `npm run test:browser`: 36 passing browser checks across Chromium, Firefox, desktop WebKit and iPhone WebKit; four intentional skips (native CDP touch runs only in Chromium, and the two-slide fitting-layout case runs only at desktop width); loops and retained interactive state; focus/autoplay; RTL input editing; reduced motion; finite mode; resizing and changing children; clipboard in Chromium; automated WCAG 2 A/AA, 2.1 AA and 2.2 AA rules with axe; desktop/tablet/phone/landscape overflow checks. A CDP native touch swipe is tested in Chromium only.
 - `npm audit` and `npm audit --omit=dev`: zero known vulnerabilities after updating the entire lockfile. The original lockfile reported 55 findings: 1 low, 31 moderate, 17 high, 6 critical. Audit status is a point-in-time result, not a guarantee that no vulnerabilities exist.
 - Opened and reviewed 1440px desktop, 768px tablet and 390px phone screenshots. Fixed tablet headline wrapping, vertical carousel overlap and Safari/RTL caret snapping. Rechecked at 375px and 844×390 landscape through browser tests.
 - Read the current official Web Interface Guidelines; applied semantic navigation, labels, focus styles, copy feedback, reduced motion, overflow handling and visible autoplay controls. Deliberate Taste inspector exceptions are recorded in DESIGN.md.
 
-`lib/size.json` is generated from the shipping ESM entry with Node zlib gzip level 9. The current entry is **1,440 bytes gzip** (2,840 bytes minified ESM; 1,247 bytes Brotli), with a **1,600-byte** enforced ceiling. The React runtime, demo app and npm archive are separate measurements. Run `npm run size` for the exact final byte count. The demo reads this generated JSON rather than hardcoding a marketing claim.
+`lib/size.json` is generated from the shipping ESM entry with Node zlib gzip level 9. The current entry is **1,522 bytes gzip** (3,095 bytes minified ESM; 1,322 bytes Brotli), with a **1,600-byte** enforced ceiling. The React runtime, demo app and npm archive are separate measurements. Run `npm run size` for the exact final byte count. The demo reads this generated JSON rather than hardcoding a marketing claim.
 
 The production demo includes the built Rerousel artifact; React's own client runtime accounts for most of the demo's JavaScript. The Vite build may warn that `use client` is not preserved in a static demo bundle. Both actual npm entry points retain the directive, and the package smoke test enforces it. No browser console/runtime errors were observed during the passing browser tests.
 
@@ -43,4 +43,8 @@ Browser tests use Playwright's current Chromium, Firefox and WebKit builds, not 
 
 ## Review preview
 
-A draft deploy is available at https://6ae106b4050f39c188495ea7--rerousel.netlify.app/ (Netlify deploy ID `6ae106b4050f39c188495ea7`). It is a deploy-preview with no production publication timestamp and a noindex header. The live production deploy remains `6084a12febd42f25d9817528`. The preview includes a release-pending banner so its install instructions do not imply that npm already serves 1.0.0.
+A draft deploy is available at https://6ae10838fd32ca170fa20852--rerousel.netlify.app/ (Netlify deploy ID `6ae10838fd32ca170fa20852`). It is a deploy-preview with no production publication timestamp and a noindex header. The live production deploy remains `6084a12febd42f25d9817528`. The preview includes a release-pending banner so its install instructions do not imply that npm already serves 1.0.0.
+
+## Upstream CI access dependency
+
+The initial PR check did not start a runner. GitHub's check annotation reports: “The job was not started because your account is locked due to a billing issue.” An upstream owner must resolve the billing lock before hosted CI and the trusted npm workflow can run. This is separate from the passing local checks. CI pins Ubuntu 24.04 to avoid the current ubuntu-latest image migration.

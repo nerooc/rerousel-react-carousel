@@ -1,7 +1,8 @@
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'node:path';
 const compat = process.env.REACT_COMPAT_DIR;
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  server: mode === 'browser-test' ? { hmr: false, watch: null } : undefined,
   resolve: {
     alias: {
       rerousel: resolve('lib/index.js'),
@@ -21,4 +22,4 @@ export default defineConfig({
     setupFiles: ['tests/setup.ts'],
     restoreMocks: true,
   },
-});
+}));

@@ -6,7 +6,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : 4,
   reporter: [['list'], ['html', { open: 'never' }]],
-  use: { baseURL: 'http://127.0.0.1:4173', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
+  use: { baseURL: 'http://127.0.0.1:4174', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
@@ -14,8 +14,8 @@ export default defineConfig({
     { name: 'phone', use: { ...devices['iPhone 13'], defaultBrowserType: 'webkit' } },
   ],
   webServer: {
-    command: 'npm run build && npm start -- --port 4173 --strictPort',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
+    command: 'npm run build && npm start -- --mode browser-test --port 4174 --strictPort',
+    url: 'http://127.0.0.1:4174',
+    reuseExistingServer: false,
   },
 });

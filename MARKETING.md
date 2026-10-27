@@ -14,7 +14,7 @@ A tiny, dependency-free infinite carousel for React. Your content, your styles.
 
 Rerousel 1.0 is out: a tiny, unstyled carousel for React 18 and 19.
 
-• Around 1.4 kB gzipped, excluding React
+• Around 1.5 kB gzipped, excluding React
 • Zero runtime dependencies
 • Native scrolling, keyboard navigation, RTL and reduced-motion support
 • Interactive slides keep their state, refs and input values through loops

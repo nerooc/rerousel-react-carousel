@@ -43,7 +43,7 @@ Browser tests use Playwright's current Chromium, Firefox and WebKit builds, not 
 
 ## Review preview
 
-A draft deploy is available at https://6ae10838fd32ca170fa20852--rerousel.netlify.app/ (Netlify deploy ID `6ae10838fd32ca170fa20852`). It is a deploy-preview with no production publication timestamp and a noindex header. The live production deploy remains `6084a12febd42f25d9817528`. The preview includes a release-pending banner so its install instructions do not imply that npm already serves 1.0.0.
+A draft deploy is available at https://6ae1095c47f11a93a3a52235--rerousel.netlify.app/ (Netlify deploy ID `6ae1095c47f11a93a3a52235`). It is a deploy-preview with no production publication timestamp and a noindex header. The live production deploy remains `6084a12febd42f25d9817528`. The preview includes a release-pending banner so its install instructions do not imply that npm already serves 1.0.0.
 
 ## Upstream CI access dependency
 

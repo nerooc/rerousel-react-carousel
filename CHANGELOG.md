@@ -1,0 +1,15 @@
+# Changelog
+
+## 1.0.0 — Unreleased
+
+Breaking modernization of Rerousel for React 18.3.1 and React 19.
+
+- Replace the old duplicated-child/timer implementation with native scrolling over one live copy of each slide. Slide state, refs, IDs, focus and form values stay intact.
+- Loop via an instant boundary reset, instead of rendering repeated children. This is not continuous marquee behavior.
+- Remove typestyle and all runtime dependencies. Ship minified ESM and CommonJS, public TypeScript declarations and a preserved client directive.
+- Fix implicit `children` typing, stale scroll positions, mobile reverse scrolling at the loop boundary, interval cleanup and StrictMode behavior.
+- Measure actual slide offsets for unequal/responsive widths, padding, borders and gaps. `itemRef` is optional and deprecated; `itemWidth` now works as an optional fixed advance distance.
+- Add native keyboard navigation, RTL support, app-owned navigation refs, finite mode, hover/focus pause, document visibility pause and reduced-motion handling.
+- Replace Snowpack, ttypescript, Jest 26 and the old CSS/runtime tooling with current development tooling. Audit the complete lockfile, including dev dependencies.
+- Replace the old sandbox with a responsive live playground, interactive examples, copyable code, API reference and measured footprint.
+- Add compatibility, browser, accessibility, package/SSR and size checks; replace publish-on-push workflows with an explicit tested release workflow.

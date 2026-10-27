@@ -1,0 +1,533 @@
+import { useEffect, useRef, useState, version as reactVersion } from 'react';
+import { Rerousel, type RerouselHandle } from 'rerousel';
+import size from '../lib/size.json';
+
+const github = 'https://github.com/aexol-studio/rerousel-react-carousel';
+const npm = 'https://www.npmjs.com/package/rerousel';
+const initial = new URLSearchParams(window.location.search);
+const validMode = (value: string | null) => (value === 'interactive' ? 'interactive' : 'posters');
+const initialInterval = Number(initial.get('interval'));
+const defaults = {
+  mode: validMode(initial.get('demo')),
+  interval: initialInterval >= 1000 && initialInterval <= 6000 ? initialInterval : 3000,
+  loop: initial.get('loop') !== 'false',
+  stop: initial.get('paused') === 'true',
+};
+
+function Arrow({ back = false }: { back?: boolean }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      style={back ? { transform: 'rotate(180deg)' } : undefined}
+    >
+      <path d="M4 12h15M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  );
+}
+
+function CopyButton({ value, label = 'Copy code' }: { value: string; label?: string }) {
+  const [status, setStatus] = useState('');
+  const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timeout.current), []);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setStatus('Copied');
+    } catch {
+      setStatus('Select and copy the code below');
+    }
+    clearTimeout(timeout.current);
+    timeout.current = setTimeout(() => setStatus(''), 4000);
+  };
+  return (
+    <span className="copy-control">
+      <button className="button copy-button" onClick={copy}>
+        {status === 'Copied' ? 'Copied' : label}
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 9h11v12H9zM15 9V3H3v12h6" stroke="currentColor" strokeWidth="1.6" />
+        </svg>
+      </button>
+      <span className="sr-only" role="status">
+        {status}
+      </span>
+    </span>
+  );
+}
+
+function CounterSlide() {
+  const [count, setCount] = useState(0);
+  return (
+    <article className="slide interactive-slide">
+      <span className="slide-kicker">Real React state</span>
+      <div className="counter-value" aria-live="polite">
+        {count}
+      </div>
+      <button className="button counter-button" onClick={() => setCount((n) => n + 1)}>
+        Add one <span aria-hidden="true">+</span>
+      </button>
+      <p>Loop around. Your count stays.</p>
+    </article>
+  );
+}
+
+function InputSlide() {
+  return (
+    <article className="slide input-slide">
+      <span className="slide-kicker">Real inputs, too</span>
+      <div>
+        <label htmlFor="slide-note">Leave yourself a note</label>
+        <input id="slide-note" name="slide-note" autoComplete="off" placeholder="Type something…" />
+      </div>
+      <p>Your text stays when you come back.</p>
+    </article>
+  );
+}
+
+const apiRows = [
+  ['children', 'ReactNode', '—', 'Your slide elements. Set their widths in your CSS.'],
+  ['interval', 'number', '3000', 'Milliseconds between advances. Set ≤ 0 to disable autoplay.'],
+  ['stop', 'boolean', 'false', 'Pause autoplay. Manual controls still work.'],
+  ['loop', 'boolean', 'true', 'Return to the start at the end, with an instant reset.'],
+  ['pauseOnHover', 'boolean', 'true', 'Pause while the pointer is over a slide.'],
+  ['itemWidth', 'number', 'auto', 'Optional fixed advance distance in CSS pixels.'],
+  ['itemRef', 'RefObject', '—', 'Deprecated. Accepted for migration; no longer needed.'],
+  ['ref', 'RerouselHandle', '—', 'next(), previous(), and the native scrolling element.'],
+];
+
+export function App() {
+  const [mode, setMode] = useState(defaults.mode);
+  const [interval, setIntervalValue] = useState(defaults.interval);
+  const [stop, setStop] = useState(defaults.stop);
+  const [loop, setLoop] = useState(defaults.loop);
+  const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const carousel = useRef<RerouselHandle>(null);
+  useEffect(() => {
+    const media = matchMedia('(prefers-reduced-motion: reduce)');
+    const change = () => setReduced(media.matches);
+    media.addEventListener('change', change);
+    return () => media.removeEventListener('change', change);
+  }, []);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.search = '';
+    if (mode !== 'posters') url.searchParams.set('demo', mode);
+    if (interval !== 3000) url.searchParams.set('interval', String(interval));
+    if (stop) url.searchParams.set('paused', 'true');
+    if (!loop) url.searchParams.set('loop', 'false');
+    window.history.replaceState(null, '', url);
+  }, [mode, interval, stop, loop]);
+
+  const code = `import { Rerousel } from 'rerousel';\n\nexport function Gallery() {\n  return (\n    <Rerousel interval={${interval}}${stop ? ' stop' : ''}${!loop ? ' loop={false}' : ''}\n      aria-label="Selected work"\n      style={{ gap: 16 }}>\n      {['Make', 'Something', 'Move'].map((title) => (\n        <article key={title} style={{ width: 280 }}>\n          <h2>{title}</h2>\n        </article>\n      ))}\n    </Rerousel>\n  );\n}`;
+
+  return (
+    <>
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
+      <div className="hero-field">
+        <header className="header frame">
+          <a className="wordmark" href="#" aria-label="Rerousel home" translate="no">
+            rerousel<span aria-hidden="true">↻</span>
+          </a>
+          <nav aria-label="Main navigation">
+            <a href="#playground">Playground</a>
+            <a href="#start">Docs</a>
+            <a href={github}>
+              GitHub <span aria-hidden="true">↗</span>
+            </a>
+          </nav>
+          <a className="header-npm" href={npm}>
+            View on npm <span aria-hidden="true">↗</span>
+          </a>
+        </header>
+        <main id="main">
+          {import.meta.env.VITE_RELEASE_PREVIEW === 'true' && (
+            <p className="release-preview frame">
+              Rerousel 1.0 preview. npm publication is pending; the install command currently resolves to the
+              previous release.
+            </p>
+          )}
+          <section className="hero frame" aria-labelledby="hero-title">
+            <div className="hero-heading">
+              <h1 id="hero-title">
+                Your content.
+                <br />
+                On repeat.
+              </h1>
+              <div className="hero-intro">
+                <p>
+                  A tiny, unstyled carousel for React. Native scrolling, interactive slides, zero runtime
+                  dependencies.
+                </p>
+                <a className="button primary" href="#start">
+                  Get started <Arrow />
+                </a>
+                <span className="hero-note">Open source. MIT licensed.</span>
+              </div>
+            </div>
+            <div className="package-facts" aria-label="Package facts">
+              <span>{(size.gzip / 1000).toFixed(2)} kB gzipped</span>
+              <span>React 18 & 19</span>
+              <span>TypeScript included</span>
+            </div>
+          </section>
+          <section id="playground" className="playground frame" aria-labelledby="playground-title">
+            <div className="stage" data-ui="live-carousel">
+              <div className="stage-top">
+                <h2 id="playground-title">Put it in motion</h2>
+                <span className="stage-status">
+                  {reduced ? 'Reduced motion on' : stop ? 'Autoplay paused' : 'Autoplay on'}
+                </span>
+              </div>
+              <Rerousel
+                key={mode}
+                ref={carousel}
+                interval={interval}
+                stop={stop}
+                loop={loop}
+                className="demo-carousel"
+                aria-label={mode === 'posters' ? 'Typographic poster examples' : 'Interactive React examples'}
+              >
+                {mode === 'posters'
+                  ? [
+                      <article className="slide poster poster-make" key="make">
+                        <span className="slide-kicker">Your next idea</span>
+                        <strong>
+                          MAKE
+                          <br />
+                          SOME
+                          <br />
+                          MOVES.
+                        </strong>
+                        <span className="poster-foot">Anything you can render.</span>
+                      </article>,
+                      <article className="slide poster poster-less" key="less">
+                        <span className="slide-kicker">Keep it light</span>
+                        <strong>
+                          LESS
+                          <br />
+                          IS
+                          <br />
+                          MORE.
+                        </strong>
+                        <span className="poster-foot">Zero runtime dependencies.</span>
+                      </article>,
+                      <article className="slide poster poster-loop" key="loop">
+                        <span className="slide-kicker">Take another look</span>
+                        <strong>
+                          LOOP
+                          <br />
+                          IT
+                          <br />
+                          AGAIN.
+                        </strong>
+                        <span className="poster-foot">Your styles. Your content.</span>
+                      </article>,
+                      <article className="slide poster poster-yours" key="yours">
+                        <span className="slide-kicker">No design attached</span>
+                        <strong>
+                          MAKE
+                          <br />
+                          IT
+                          <br />
+                          YOURS.
+                        </strong>
+                        <span className="poster-foot">A little React goes a long way.</span>
+                      </article>,
+                    ]
+                  : [
+                      <CounterSlide key="counter" />,
+                      <InputSlide key="input" />,
+                      <article className="slide link-slide" key="link">
+                        <span className="slide-kicker">Real links</span>
+                        <strong>
+                          GO
+                          <br />
+                          SOMEWHERE.
+                        </strong>
+                        <a href="#api" className="button">
+                          Explore the API <Arrow />
+                        </a>
+                        <p>Everything inside is your component.</p>
+                      </article>,
+                    ]}
+              </Rerousel>
+              <div className="stage-bottom">
+                <span>Swipe, or focus here and use ← →</span>
+                <div className="carousel-buttons">
+                  <button
+                    className="icon-button"
+                    aria-label="Previous slide"
+                    onClick={() => carousel.current?.previous()}
+                  >
+                    <Arrow back />
+                  </button>
+                  <button
+                    className="icon-button"
+                    aria-label="Next slide"
+                    onClick={() => carousel.current?.next()}
+                  >
+                    <Arrow />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <aside className="playground-controls" aria-label="Playground settings">
+              <h3>Give it a spin</h3>
+              <p>
+                This is the real package.
+                <br />
+                Change a setting. See it happen.
+              </p>
+              <fieldset className="mode-control">
+                <legend>Slide content</legend>
+                <div className="segmented">
+                  <label>
+                    <input
+                      type="radio"
+                      name="content"
+                      value="posters"
+                      checked={mode === 'posters'}
+                      onChange={() => setMode('posters')}
+                    />
+                    <span>Posters</span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="content"
+                      value="interactive"
+                      checked={mode === 'interactive'}
+                      onChange={() => setMode('interactive')}
+                    />
+                    <span>Interactive</span>
+                  </label>
+                </div>
+              </fieldset>
+              <label className="range-label" htmlFor="interval">
+                Advance every <output htmlFor="interval">{(interval / 1000).toFixed(1)} s</output>
+              </label>
+              <input
+                id="interval"
+                name="interval"
+                type="range"
+                min="1000"
+                max="6000"
+                step="500"
+                value={interval}
+                onChange={(event) => setIntervalValue(Number(event.target.value))}
+              />
+              <label className="check-label">
+                <span>Loop at the end</span>
+                <input
+                  name="loop"
+                  type="checkbox"
+                  checked={loop}
+                  onChange={(event) => setLoop(event.target.checked)}
+                />
+              </label>
+              <button
+                className="button playback"
+                aria-pressed={stop}
+                disabled={reduced}
+                onClick={() => setStop(!stop)}
+              >
+                {reduced ? 'Motion reduced' : stop ? 'Resume autoplay' : 'Pause autoplay'}
+                <span aria-hidden="true">{stop ? '▷' : 'Ⅱ'}</span>
+              </button>
+              <p className="control-note">
+                {reduced
+                  ? 'Your system preference disables autoplay. Previous and next still work.'
+                  : 'Autoplay pauses on hover and focus. Your settings update the code below.'}
+              </p>
+              <a className="text-link" href="#example">
+                Get the code <span aria-hidden="true">↓</span>
+              </a>
+            </aside>
+          </section>
+          <div className="hero-bottom frame">
+            <span>Built with Rerousel {size.version}</span>
+            <span>Running React {reactVersion}</span>
+          </div>
+          <section className="footprint frame" aria-labelledby="footprint-title">
+            <h2 id="footprint-title">
+              A small footprint.
+              <br />
+              Room for your ideas.
+            </h2>
+            <div className="footprint-proof">
+              <div className="size-number">
+                {(size.gzip / 1000).toFixed(2)}
+                <span>kB</span>
+              </div>
+              <p>
+                Minified ESM, gzipped. React excluded.
+                <br />
+                Zero runtime dependencies. No CSS import.
+              </p>
+              <a href={`${github}/blob/master/scripts/size.mjs`}>
+                See how it’s measured <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </section>
+          <div className="docs-field">
+            <section id="start" className="getting-started frame" aria-labelledby="start-title">
+              <div>
+                <span className="section-label">Start building</span>
+                <h2 id="start-title">
+                  One import.
+                  <br />
+                  Your imagination.
+                </h2>
+                <p>Install Rerousel, add your elements, and set their widths. Everything else is your CSS.</p>
+                <p className="compat-note">
+                  For React 18.3+ and React 19.
+                  <br />
+                  Using 0.x? Read the <a href={`${github}#migrating-from-0x`}>migration guide</a>.
+                </p>
+              </div>
+              <div className="install-panel">
+                <div className="code-header">
+                  <span>Terminal</span>
+                  <CopyButton value="npm install rerousel" label="Copy command" />
+                </div>
+                <pre>
+                  <code>
+                    <span className="code-muted">$ </span>npm install rerousel
+                  </code>
+                </pre>
+                <div className="install-details">
+                  <span>npm · pnpm · yarn · bun</span>
+                  <a href={npm}>
+                    Package on npm <span aria-hidden="true">↗</span>
+                  </a>
+                </div>
+              </div>
+            </section>
+            <section id="example" className="example frame" aria-labelledby="example-title">
+              <div className="example-intro">
+                <h2 id="example-title">Try it in your project</h2>
+                <p>
+                  This example follows your autoplay and loop settings above. No ref is required to measure
+                  slides.
+                </p>
+              </div>
+              <div className="code-panel">
+                <div className="code-header">
+                  <span>Gallery.tsx</span>
+                  <CopyButton value={code} />
+                </div>
+                <pre tabIndex={0} aria-label="Copyable React carousel example">
+                  <code>{code}</code>
+                </pre>
+              </div>
+            </section>
+            <section id="api" className="api frame" aria-labelledby="api-title">
+              <div className="section-heading">
+                <h2 id="api-title">Small API. Full control.</h2>
+                <p>
+                  All standard div attributes pass through, including styles, event handlers, and accessible
+                  labels.
+                </p>
+              </div>
+              <div className="table-scroll" tabIndex={0} role="region" aria-label="Carousel API reference">
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">Prop</th>
+                      <th scope="col">Type</th>
+                      <th scope="col">Default</th>
+                      <th scope="col">What it does</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {apiRows.map(([prop, type, value, description]) => (
+                      <tr key={prop}>
+                        <th scope="row">
+                          <code>{prop}</code>
+                        </th>
+                        <td>
+                          <code>{type}</code>
+                        </td>
+                        <td>
+                          <code>{value}</code>
+                        </td>
+                        <td>{description}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+            <section className="questions frame" aria-labelledby="questions-title">
+              <h2 id="questions-title">A few good questions</h2>
+              <div className="answers">
+                <details>
+                  <summary>How does the loop work?</summary>
+                  <p>
+                    Each slide renders once. Rerousel scrolls between your slides, then instantly returns to
+                    the start at the end. It is a carousel with a boundary reset, rather than a continuous
+                    marquee.
+                  </p>
+                </details>
+                <details>
+                  <summary>Can slides contain buttons and inputs?</summary>
+                  <p>
+                    Yes. Try Interactive in the playground. State, refs, IDs, and form values stay intact
+                    across loops. Autoplay pauses while you interact with the carousel.
+                  </p>
+                </details>
+                <details>
+                  <summary>What about accessibility?</summary>
+                  <p>
+                    Add a descriptive aria-label and a visible pause control, as this demo does. Focus the
+                    carousel for arrow, Home, and End navigation. Reduced-motion preferences disable autoplay
+                    and smooth scrolling. Your slide content is still responsible for its own accessible
+                    markup.
+                  </p>
+                </details>
+                <details>
+                  <summary>Which browsers are supported?</summary>
+                  <p>
+                    Current Chrome, Edge, Firefox, Safari, and their mobile equivalents. Rerousel uses native
+                    scroll snapping, ResizeObserver, and standard media queries without legacy polyfills.
+                  </p>
+                </details>
+              </div>
+            </section>
+          </div>
+        </main>
+        <footer className="footer frame">
+          <div className="footer-top">
+            <p>
+              Put your next idea
+              <br />
+              on repeat.
+            </p>
+            <a className="button primary" href={github}>
+              Explore the source <Arrow />
+            </a>
+          </div>
+          <div className="footer-links">
+            <span>
+              Made by <a href="https://aexol.com/">Aexol</a>
+            </span>
+            <div>
+              <a href={github}>GitHub</a>
+              <a href={npm}>npm</a>
+              <a href={`${github}/blob/master/LICENSE`}>MIT license</a>
+              <a href={`${github}/issues`}>Report an issue</a>
+            </div>
+          </div>
+          <div className="footer-wordmark" aria-hidden="true">
+            rerousel<span>↻</span>
+          </div>
+        </footer>
+      </div>
+    </>
+  );
+}
